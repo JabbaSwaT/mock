@@ -1,0 +1,106 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+@app.route('/QWE/v1/token/request', methods=['POST'])
+def mock_api():
+    # Проверка заголовка Client-Authorization
+    auth_header = request.headers.get('Client-Authorization')
+    if auth_header != 'Basic qweqweqweqweqweqweqwe':
+        return jsonify({'error': '403 Нету прав'}), 403
+
+    # Проверка полей в теле запроса
+    data = request.json
+    if not data or 'uin' not in data or 'service_id' not in data or 'is_ovt' not in data or 'mcheck' not in data or 'exp_seconds' not in data:
+        return jsonify({'error': '400 Bad Request'}), 400
+
+    # Проверка поля uin
+    uin = data['uin']
+    if len(uin) != 12 or not uin.isdigit():
+        error_response = {
+            "Code": "QWE123",
+            "Message": "incorrect iin",
+            "Data": None
+        }
+        return jsonify(error_response), 400
+
+    # Проверка поля is_ovt
+    is_ovt = data.get('is_ovt')
+    if is_ovt is None or is_ovt not in [0, 1]:
+        error_response = {
+            "Code": "QWE456",
+            "Message": "incorrect is_ovt",
+            "Data": None
+        }
+        return jsonify(error_response), 400
+
+    # Проверка поля mcheck при is_ovt равном True
+    if is_ovt:
+        mcheck = data.get('mcheck')
+        if mcheck not in ['PC', 'Bio', 'Ds', 'DID']:
+            error_response = {
+                "Code": "QWE000",
+                "Message": "Success",
+                "Data": {
+                    "Response": {
+                        "ResponseInfo": {
+                            "MessageId": "qwe131230-qeasdasd13-wqeqw312eqw-3123eqwe",
+                            "ResponseDate": "2023-06-14T03:52:26.985421",
+                            "Status": {
+                                "Code": "1",
+                                "Message": "SUCCESS"
+                            }
+                        },
+                        "ResponseData": {
+                            "Data": {
+                                "Type": "ns3:getUserDataResponse",
+                                "Status": "ERROR_TV_NOT_FOUND",
+                                "Code": "[ERROR] [TvNotFoundException] CODE: [ERROR_TV_NOT_FOUND];"
+                            }
+                        }
+                    }
+                }
+            }
+            return jsonify(error_response)
+
+    # Проверка поля exp_seconds
+    exp_seconds = data.get('exp_seconds')
+    if exp_seconds is None or exp_seconds > 946728000:
+        error_response = {
+            "Code": "QWE456",
+            "Message": "bad request",
+            "Data": "EXP_SECONDS_BIGGER_30_YEARS"
+        }
+        return jsonify(error_response), 400
+
+    # Отправка успешного ответа
+    response_data = {
+    "Code": "QWE000",
+    "Message": "Success",
+    "Data": {
+        "Response": {
+            "ResponseInfo": {
+                "MessageId": "QWE123QWE123",
+                "ResponseDate": "2023-06-14T03:51:22.424138",
+                "Status": {
+                    "Code": "1",
+                    "Message": "SUCCESS"
+                }
+            },
+            "ResponseData": {
+                "Data": {
+                    "Type": "ns3:getUserDataResponse",
+                    "Status": "VALID",
+                    "Code": "token",
+                    "PublicKey": ""
+                }
+            }
+        }
+    }
+}
+    return jsonify(response_data)
+
+
+if __name__ == '__main__':
+    app.run()
